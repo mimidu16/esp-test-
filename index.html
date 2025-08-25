@@ -82,7 +82,6 @@
 </head>
 <body>
 
-  <!-- ✅ Partie Meilleur Prof -->
   <div class="header-prof">
     <img src="https://i.postimg.cc/pVsxvfqM/Design-sans-titre-2025-08-23-T215229-216.png" alt="Prof EPS">
     <h1>Marçio VALIZELOS DA EIRA</h1>
@@ -124,7 +123,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       const nbSeances = 12;
       const eleves = ["Isabelle", "Luis", "Miguel", "Amélia", "Dïamond", "Lorèna"];
-      const API_URL = "https://script.google.com/macros/s/AKfycbxQgDcK2W4WknPbdIGqBuOyBmad9_tNtSZABHtpX-32JjzJQVAkwsXARVgo4wrbgO8abw/exec";
+      const API_URL = "L'URL_de_ta_Web_App"; // Remplace cette URL avec celle de ton déploiement
 
       const tbodyTenue = document.querySelector("#table-tenue tbody");
       const tbodyAtt = document.querySelector("#table-attitude tbody");
@@ -143,14 +142,12 @@
         headAtt.innerHTML += "<th>Total</th>";
 
         eleves.forEach(nom => {
-          // Tenue
           const trTenue = document.createElement("tr");
           trTenue.innerHTML = `<td>${nom}</td>` +
             Array.from({length: nbSeances}, () => `<td><select><option value="oui">Oui</option><option value="non">Non</option></select></td>`).join("") +
             `<td class="totalTenue">0.0</td>`;
           tbodyTenue.appendChild(trTenue);
 
-          // Attitude
           const trAtt = document.createElement("tr");
           trAtt.innerHTML = `<td>${nom}</td>` +
             Array.from({length: nbSeances}, () => `<td><select>
@@ -161,7 +158,6 @@
             `<td class="totalAttitude">0.0</td>`;
           tbodyAtt.appendChild(trAtt);
 
-          // Récap
           const trRecap = document.createElement("tr");
           trRecap.innerHTML = `<td>${nom}</td><td class="recapTenue"></td><td class="recapAttitude"></td><td class="totalFinal"></td>`;
           tbodyRecap.appendChild(trRecap);
@@ -220,38 +216,30 @@
         });
       }
 
-      // === Gestion événements ===
-      document.querySelectorAll("#table-tenue select").forEach(sel => sel.addEventListener("change", () => {
-        calculerTenue(sel.closest("tr")); calculerRecap(); saveData();
-      }));
-      document.querySelectorAll("#table-attitude select").forEach(sel => sel.addEventListener("change", () => {
-        calculerAttitude(sel.closest("tr")); calculerRecap(); saveData();
-      }));
-
-      // === Google Sheets ===
+      // === Envoi des données ===
       async function saveData() {
-        eleves.forEach((eleve, i) => {
-          const tenue = Array.from(tbodyTenue.querySelectorAll("tr")[i].querySelectorAll("select")).map(s => s.value);
-          const attitude = Array.from(tbodyAtt.querySelectorAll("tr")[i].querySelectorAll("select")).map(s => s.value);
+        eleves.forEach((eleve, index) => {
+          const tenue = Array.from(document.querySelectorAll(`#table-tenue tr:nth-child(${index + 1}) select`)).map(sel => sel.value);
+          const attitude = Array.from(document.querySelectorAll(`#table-attitude tr:nth-child(${index + 1}) select`)).map(sel => sel.value);
+
+          // Envoi des données via POST
           fetch(API_URL, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({eleve, tenue, attitude})
-          });
+            body: JSON.stringify({ eleve, tenue, attitude })
+          })
+          .then(response => response.text())
+          .then(data => console.log("Réponse du serveur : ", data))
+          .catch(error => console.error("Erreur lors de l'envoi des données : ", error));
         });
       }
 
-      // Reset
-      window.resetAll = () => {
-        tbodyTenue.querySelectorAll("select").forEach(s => s.value = "oui");
-        tbodyAtt.querySelectorAll("select").forEach(s => s.value = "neutre");
-        tbodyTenue.querySelectorAll("tr").forEach(tr => calculerTenue(tr));
-        tbodyAtt.querySelectorAll("tr").forEach(tr => calculerAttitude(tr));
-        calculerRecap();
-        saveData();
-      };
+      // Envoie les données chaque fois qu'un utilisateur modifie une valeur
+      document.querySelectorAll("select").forEach(sel => {
+        sel.addEventListener("change", saveData);
+      });
 
-      // Init calculs
+      // Initialiser les calculs
       tbodyTenue.querySelectorAll("tr").forEach(tr => calculerTenue(tr));
       tbodyAtt.querySelectorAll("tr").forEach(tr => calculerAttitude(tr));
       calculerRecap();
@@ -259,4 +247,3 @@
   </script>
 </body>
 </html>
-
