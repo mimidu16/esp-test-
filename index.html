@@ -2,90 +2,260 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Suivi Élèves</title>
+  <title>Suivi EPS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .header-prof {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .header-prof img {
+      width: 120px;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .header-prof h1 {
+      margin: 10px 0 0;
+      font-size: 20px;
+      color: #333;
+    }
+    .header-prof p {
+      margin: 5px 0 0;
+      font-size: 16px;
+      font-weight: bold;
+      color: #007bff;
+    }
+    table {
+      border-collapse: collapse;
+      margin: auto;
+      margin-bottom: 30px;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      width: 95%;
+      table-layout: fixed;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+    th:first-child, td:first-child {
+      width: 150px;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    select {
+      padding: 3px;
+      width: 100%;
+    }
+    .totalTenue, .totalAttitude, .totalFinal {
+      font-weight: bold;
+    }
+    .btn-reset {
+      display: block;
+      margin: auto;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .btn-reset:hover {
+      background: #c82333;
+    }
+  </style>
 </head>
 <body>
+
+  <!-- ✅ Partie Meilleur Prof -->
+  <div class="header-prof">
+    <img src="https://i.postimg.cc/pVsxvfqM/Design-sans-titre-2025-08-23-T215229-216.png" alt="Prof EPS">
+    <h1>Marçio VALIZELOS DA EIRA</h1>
+    <p>🏋️ Meilleur prof d'EPS du monde 🤾</p>
+  </div>
+
   <h2>Suivi Tenue</h2>
-  <table id="tableTenue"></table>
+  <table id="table-tenue">
+    <thead>
+      <tr><th>Élève</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <h2>Suivi Attitude</h2>
-  <table id="tableAttitude"></table>
+  <table id="table-attitude">
+    <thead>
+      <tr><th>Élève</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Récapitulatif Général</h2>
+  <table id="table-recap">
+    <thead>
+      <tr>
+        <th>Élève</th>
+        <th>Total Tenue</th>
+        <th>Total Attitude</th>
+        <th>Somme Finale</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button class="btn-reset" onclick="resetAll()">🔄 Réinitialiser tout</button>
 
   <script>
-    const API_URL = "TON_URL_APPS_SCRIPT"; // <-- colle ton URL déployé ici
-    const eleves = ["Isabelle", "Luis", "Miguel", "Amélia", "Dïamond", "Lorèna"];
-    const nbSeances = 12;
+    document.addEventListener("DOMContentLoaded", () => {
+      const nbSeances = 12;
+      const eleves = ["Isabelle", "Luis", "Miguel", "Amélia", "Dïamond", "Lorèna"];
+      const API_URL = "https://script.google.com/macros/s/AKfycbzr-NSUShZyZVgM-QNOxuhBI8JptxtyAEzCsKQzIcjMUpgfHvsDOaW1tALvjKYGHCl68Q/exec";
 
-    const tbodyTenue = document.getElementById("tableTenue");
-    const tbodyAtt = document.getElementById("tableAttitude");
+      const tbodyTenue = document.querySelector("#table-tenue tbody");
+      const tbodyAtt = document.querySelector("#table-attitude tbody");
+      const tbodyRecap = document.querySelector("#table-recap tbody");
 
-    // Créer les tableaux
-    function creerTables() {
-      eleves.forEach(nom => {
-        let trT = document.createElement("tr");
-        trT.innerHTML = `<td>${nom}</td>` + 
-          Array.from({length: nbSeances}, (_,j) => `<td><select>
-            <option value="oui">Oui</option>
-            <option value="non">Non</option>
-          </select></td>`).join("");
-        tbodyTenue.appendChild(trT);
+      // === Construction des tableaux ===
+      function construireTables() {
+        const headTenue = document.querySelector("#table-tenue thead tr");
+        const headAtt = document.querySelector("#table-attitude thead tr");
 
-        let trA = document.createElement("tr");
-        trA.innerHTML = `<td>${nom}</td>` + 
-          Array.from({length: nbSeances}, (_,j) => `<td><select>
-            <option value="neutre">Neutre</option>
-            <option value="bonne">Bonne</option>
-            <option value="mauvaise">Mauvaise</option>
-          </select></td>`).join("");
-        tbodyAtt.appendChild(trA);
-      });
-    }
+        for (let i = 1; i <= nbSeances; i++) {
+          headTenue.innerHTML += `<th>Séance ${i}</th>`;
+          headAtt.innerHTML += `<th>Séance ${i}</th>`;
+        }
+        headTenue.innerHTML += "<th>Total</th>";
+        headAtt.innerHTML += "<th>Total</th>";
 
-    // Charger les données depuis Sheets
-    async function loadData() {
-      try {
-        const resTenue = await fetch(API_URL + "?sheet=Suivi tenue");
-        const dataTenue = await resTenue.json();
-
-        const resAtt = await fetch(API_URL + "?sheet=Suivi attitude");
-        const dataAtt = await resAtt.json();
-
-        eleves.forEach((nom, i) => {
+        eleves.forEach(nom => {
           // Tenue
-          if (dataTenue[nom]) {
-            tbodyTenue.querySelectorAll("tr")[i].querySelectorAll("select")
-              .forEach((s, j) => s.value = (dataTenue[nom][j] || "oui").toLowerCase());
-          }
+          const trTenue = document.createElement("tr");
+          trTenue.innerHTML = `<td>${nom}</td>` +
+            Array.from({length: nbSeances}, () => `<td><select><option value="oui">Oui</option><option value="non">Non</option></select></td>`).join("") +
+            `<td class="totalTenue">0.0</td>`;
+          tbodyTenue.appendChild(trTenue);
+
           // Attitude
-          if (dataAtt[nom]) {
-            tbodyAtt.querySelectorAll("tr")[i].querySelectorAll("select")
-              .forEach((s, j) => s.value = (dataAtt[nom][j] || "neutre").toLowerCase());
+          const trAtt = document.createElement("tr");
+          trAtt.innerHTML = `<td>${nom}</td>` +
+            Array.from({length: nbSeances}, () => `<td><select>
+              <option value="neutre">Neutre</option>
+              <option value="bonne">Bonne</option>
+              <option value="mauvaise">Mauvaise</option>
+            </select></td>`).join("") +
+            `<td class="totalAttitude">0.0</td>`;
+          tbodyAtt.appendChild(trAtt);
+
+          // Récap
+          const trRecap = document.createElement("tr");
+          trRecap.innerHTML = `<td>${nom}</td><td class="recapTenue"></td><td class="recapAttitude"></td><td class="totalFinal"></td>`;
+          tbodyRecap.appendChild(trRecap);
+        });
+      }
+
+      construireTables();
+
+      // === Calculs ===
+      function calculerTenue(tr) {
+        let malus = 0;
+        tr.querySelectorAll("select").forEach(sel => {
+          if (sel.value === "non") {
+            malus += 0.1;
+            sel.parentElement.style.backgroundColor = "#f8d7da";
+          } else {
+            sel.parentElement.style.backgroundColor = "white";
           }
         });
-      } catch (err) {
-        console.error("Erreur loadData", err);
+        const td = tr.querySelector(".totalTenue");
+        td.textContent = malus > 0 ? "-" + malus.toFixed(1) : "0.0";
+        td.style.color = malus > 0 ? "#dc3545" : "black";
       }
-    }
 
-    // Sauvegarder dans Sheets
-    async function saveData() {
-      eleves.forEach((nom, i) => {
-        const tenue = Array.from(tbodyTenue.querySelectorAll("tr")[i].querySelectorAll("select")).map(s => s.value);
-        const attitude = Array.from(tbodyAtt.querySelectorAll("tr")[i].querySelectorAll("select")).map(s => s.value);
-
-        fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify({ eleve: nom, tenue, attitude })
+      function calculerAttitude(tr) {
+        let score = 0;
+        tr.querySelectorAll("select").forEach(sel => {
+          if (sel.value === "bonne") {
+            score += 0.1;
+            sel.parentElement.style.backgroundColor = "#d4edda";
+          } else if (sel.value === "mauvaise") {
+            score -= 0.1;
+            sel.parentElement.style.backgroundColor = "#f8d7da";
+          } else {
+            sel.parentElement.style.backgroundColor = "white";
+          }
         });
-      });
-    }
+        const td = tr.querySelector(".totalAttitude");
+        td.textContent = score > 0 ? "+" + score.toFixed(1) : score.toFixed(1);
+        td.style.color = score > 0 ? "#28a745" : (score < 0 ? "#dc3545" : "black");
+      }
 
-    // Init
-    creerTables();
-    loadData();
+      function calculerRecap() {
+        eleves.forEach((nom, i) => {
+          const tenueVal = parseFloat(tbodyTenue.querySelectorAll(".totalTenue")[i].textContent) || 0;
+          const attVal = parseFloat(tbodyAtt.querySelectorAll(".totalAttitude")[i].textContent) || 0;
 
-    // Sauvegarde auto à chaque changement
-    document.addEventListener("change", saveData);
+          const tr = tbodyRecap.querySelectorAll("tr")[i];
+          tr.querySelector(".recapTenue").textContent = tenueVal < 0 ? tenueVal.toFixed(1) : "0.0";
+          tr.querySelector(".recapAttitude").textContent = attVal > 0 ? "+" + attVal.toFixed(1) : attVal.toFixed(1);
+
+          const somme = tenueVal + attVal;
+          const tdFinal = tr.querySelector(".totalFinal");
+          tdFinal.textContent = somme > 0 ? "+" + somme.toFixed(1) : somme.toFixed(1);
+          tdFinal.style.color = somme > 0 ? "#28a745" : (somme < 0 ? "#dc3545" : "black");
+        });
+      }
+
+      // === Gestion événements ===
+      document.querySelectorAll("#table-tenue select").forEach(sel => sel.addEventListener("change", () => {
+        calculerTenue(sel.closest("tr")); calculerRecap(); saveData();
+      }));
+      document.querySelectorAll("#table-attitude select").forEach(sel => sel.addEventListener("change", () => {
+        calculerAttitude(sel.closest("tr")); calculerRecap(); saveData();
+      }));
+
+      // === Google Sheets ===
+      async function saveData() {
+        eleves.forEach((eleve, i) => {
+          const tenue = Array.from(tbodyTenue.querySelectorAll("tr")[i].querySelectorAll("select")).map(s => s.value);
+          const attitude = Array.from(tbodyAtt.querySelectorAll("tr")[i].querySelectorAll("select")).map(s => s.value);
+          fetch(API_URL, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({eleve, tenue, attitude})
+          });
+        });
+      }
+
+      // Reset
+      window.resetAll = () => {
+        tbodyTenue.querySelectorAll("select").forEach(s => s.value = "oui");
+        tbodyAtt.querySelectorAll("select").forEach(s => s.value = "neutre");
+        tbodyTenue.querySelectorAll("tr").forEach(tr => calculerTenue(tr));
+        tbodyAtt.querySelectorAll("tr").forEach(tr => calculerAttitude(tr));
+        calculerRecap();
+        saveData();
+      };
+
+      // Init calculs
+      tbodyTenue.querySelectorAll("tr").forEach(tr => calculerTenue(tr));
+      tbodyAtt.querySelectorAll("tr").forEach(tr => calculerAttitude(tr));
+      calculerRecap();
+    });
   </script>
 </body>
 </html>
