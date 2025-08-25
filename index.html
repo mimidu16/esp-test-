@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Suivi EPS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .header-prof {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .header-prof img {
+      width: 120px;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .header-prof h1 {
+      margin: 10px 0 0;
+      font-size: 20px;
+      color: #333;
+    }
+    .header-prof p {
+      margin: 5px 0 0;
+      font-size: 16px;
+      font-weight: bold;
+      color: #007bff;
+    }
+    table {
+      border-collapse: collapse;
+      margin: auto;
+      margin-bottom: 30px;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      width: 95%;
+      table-layout: fixed;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+    th:first-child, td:first-child {
+      width: 150px;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    select {
+      padding: 3px;
+      width: 100%;
+    }
+    .totalTenue, .totalAttitude, .totalFinal {
+      font-weight: bold;
+    }
+    .btn-reset {
+      display: block;
+      margin: auto;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .btn-reset:hover {
+      background: #c82333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ Partie Meilleur Prof -->
+  <div class="header-prof">
+    <img src="https://i.postimg.cc/pVsxvfqM/Design-sans-titre-2025-08-23-T215229-216.png" alt="Prof EPS">
+    <h1>Marçio VALIZELOS DA EIRA</h1>
+    <p>🏋️ Meilleur prof d'EPS du monde 🤾</p>
+  </div>
+
+  <h2>Suivi Tenue</h2>
+
+  <table id="table-tenue">
+    <thead>
+      <tr id="header-tenue">
+        <th>Élève</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Suivi Attitude</h2>
+
+  <table id="table-attitude">
+    <thead>
+      <tr id="header-attitude">
+        <th>Élève</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Récapitulatif Général</h2>
+
+  <table id="table-recap">
+    <thead>
+      <tr>
+        <th>Élève</th>
+        <th>Total Tenue</th>
+        <th>Total Attitude</th>
+        <th>Somme Finale</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button class="btn-reset" onclick="resetAll()">🔄 Réinitialiser tout</button>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const nbSeances = 12;
+      const eleves = ["Isabelle", "Luis", "Miguel", "Amélia", "Dïamond", "Lorèna"];
+      const API_URL = "https://script.google.com/macros/s/AKfycbXXXX/exec"; // ⚠️ Mets ici ton URL de déploiement
+
+      // --- TABLEAU TENUE ---
+      const headerTenue = document.getElementById("header-tenue");
+      const tbodyTenue = document.querySelector("#table-tenue tbody");
+
+      for (let i = 1; i <= nbSeances; i++) {
+        const th = document.createElement("th");
+        th.textContent = "Séance " + i;
+        headerTenue.insertBefore(th, headerTenue.lastElementChild);
+      }
+
+      eleves.forEach(nom => {
+        const tr = document.createElement("tr");
+        const tdNom = document.createElement("td");
+        tdNom.textContent = nom;
+        tr.appendChild(tdNom);
+
+        for (let i = 1; i <= nbSeances; i++) {
+          const td = document.createElement("td");
+          const select = document.createElement("select");
+
+          ["Oui", "Non"].forEach(val => {
+            const option = document.createElement("option");
+            option.value = val.toLowerCase();
+            option.textContent = val;
+            select.appendChild(option);
+          });
+
+          select.addEventListener("change", () => {
+            calculerTenue(tr);
+            calculerRecap();
+            saveData();
+          });
+
+          td.appendChild(select);
+          tr.appendChild(td);
+        }
+
+        const tdTotal = document.createElement("td");
+        tdTotal.className = "totalTenue";
+        tdTotal.textContent = "0.0";
+        tr.appendChild(tdTotal);
+
+        tbodyTenue.appendChild(tr);
+      });
+
+      function calculerTenue(tr) {
+        let malus = 0.0;
+        tr.querySelectorAll("select").forEach(sel => {
+          if (sel.value === "non") {
+            malus += 0.1;
+            sel.parentElement.style.backgroundColor = "#f8d7da";
+          } else {
+            sel.parentElement.style.backgroundColor = "white";
+          }
+        });
+
+        const tdTotal = tr.querySelector(".totalTenue");
+        tdTotal.textContent = malus > 0 ? "-" + malus.toFixed(1) : "0.0";
+        tdTotal.style.color = malus > 0 ? "#dc3545" : "black";
+      }
+
+      // --- TABLEAU ATTITUDE ---
+      const headerAtt = document.getElementById("header-attitude");
+      const tbodyAtt = document.querySelector("#table-attitude tbody");
+
+      for (let i = 1; i <= nbSeances; i++) {
+        const th = document.createElement("th");
+        th.textContent = "Séance " + i;
+        headerAtt.insertBefore(th, headerAtt.lastElementChild);
+      }
+
+      eleves.forEach(nom => {
+        const tr = document.createElement("tr");
+        const tdNom = document.createElement("td");
+        tdNom.textContent = nom;
+        tr.appendChild(tdNom);
+
+        for (let i = 1; i <= nbSeances; i++) {
+          const td = document.createElement("td");
+          const select = document.createElement("select");
+
+          const options = [
+            {val: "neutre", txt: "Neutre"},
+            {val: "bonne", txt: "Bonne"},
+            {val: "mauvaise", txt: "Mauvaise"}
+          ];
+
+          options.forEach(o => {
+            const opt = document.createElement("option");
+            opt.value = o.val;
+            opt.textContent = o.txt;
+            select.appendChild(opt);
+          });
+
+          select.addEventListener("change", () => {
+            calculerAttitude(tr);
+            calculerRecap();
+            saveData();
+          });
+
+          td.appendChild(select);
+          tr.appendChild(td);
+        }
+
+        const tdTotal = document.createElement("td");
+        tdTotal.className = "totalAttitude";
+        tdTotal.textContent = "0.0";
+        tr.appendChild(tdTotal);
+
+        tbodyAtt.appendChild(tr);
+      });
+
+      function calculerAttitude(tr) {
+        let score = 0.0;
+        tr.querySelectorAll("select").forEach(sel => {
+          if (sel.value === "bonne") {
+            score += 0.1;
+            sel.parentElement.style.backgroundColor = "#d4edda";
+          } else if (sel.value === "mauvaise") {
+            score -= 0.1;
+            sel.parentElement.style.backgroundColor = "#f8d7da";
+          } else {
+            sel.parentElement.style.backgroundColor = "white";
+          }
+        });
+
+        const tdTotal = tr.querySelector(".totalAttitude");
+        if (score > 0) {
+          tdTotal.textContent = "+" + score.toFixed(1);
+          tdTotal.style.color = "#28a745";
+        } else if (score < 0) {
+          tdTotal.textContent = score.toFixed(1);
+          tdTotal.style.color = "#dc3545";
+        } else {
+          tdTotal.textContent = "0.0";
+          tdTotal.style.color = "black";
+        }
+      }
+
+      // --- TABLEAU RECAP ---
+      const tbodyRecap = document.querySelector("#table-recap tbody");
+
+      eleves.forEach(nom => {
+        const tr = document.createElement("tr");
+        const tdNom = document.createElement("td");
+        tdNom.textContent = nom;
+        tr.appendChild(tdNom);
+
+        const tdTenue = document.createElement("td");
+        tdTenue.className = "recapTenue";
+        tr.appendChild(tdTenue);
+
+        const tdAtt = document.createElement("td");
+        tdAtt.className = "recapAttitude";
+        tr.appendChild(tdAtt);
+
+        const tdFinal = document.createElement("td");
+        tdFinal.className = "totalFinal";
+        tr.appendChild(tdFinal);
+
+        tbodyRecap.appendChild(tr);
+      });
+
+      function calculerRecap() {
+        eleves.forEach((nom, idx) => {
+          const tenueVal = parseFloat(
+            tbodyTenue.querySelectorAll(".totalTenue")[idx].textContent
+          ) || 0;
+          const attVal = parseFloat(
+            tbodyAtt.querySelectorAll(".totalAttitude")[idx].textContent
+          ) || 0;
+
+          const tr = tbodyRecap.querySelectorAll("tr")[idx];
+          const tdTenue = tr.querySelector(".recapTenue");
+          const tdAtt = tr.querySelector(".recapAttitude");
+          const tdFinal = tr.querySelector(".totalFinal");
+
+          tdTenue.textContent = tenueVal < 0 ? tenueVal.toFixed(1) : "0.0";
+          tdAtt.textContent = attVal > 0 ? "+" + attVal.toFixed(1) : attVal.toFixed(1);
+
+          const somme = attVal + tenueVal;
+
+          if (somme > 0) {
+            tdFinal.textContent = "+" + somme.toFixed(1);
+            tdFinal.style.color = "#28a745";
+          } else if (somme < 0) {
+            tdFinal.textContent = somme.toFixed(1);
+            tdFinal.style.color = "#dc3545";
+          } else {
+            tdFinal.textContent = "0.0";
+            tdFinal.style.color = "black";
+          }
+        });
+      }
+
+      // --- COMMUNICATION AVEC GOOGLE SHEET ---
+      async function loadData() {
+        try {
+          const res = await fetch(API_URL);
+          const data = await res.json();
+
+          data.forEach((row, i) => {
+            if (!row["Élève"]) return;
+
+            // Tenue
+            tbodyTenue.querySelectorAll("tr")[i].querySelectorAll("select")
+              .forEach((s, j) => {
+                s.value = (row["Tenue " + (j+1)] || "oui").toLowerCase();
+              });
+
+            // Attitude
+            tbodyAtt.querySelectorAll("tr")[i].querySelectorAll("select")
+              .forEach((s, j) => {
+                s.value = (row["Attitude " + (j+1)] || "neutre").toLowerCase();
+              });
+          });
+
+          tbodyTenue.querySelectorAll("tr").forEach(tr => calculerTenue(tr));
+          tbodyAtt.querySelectorAll("tr").forEach(tr => calculerAttitude(tr));
+          calculerRecap();
+        } catch (err) {
+          console.error("Erreur de chargement", err);
+        }
+      }
+
+      async function saveData() {
+        tbodyTenue.querySelectorAll("tr").forEach(async (tr, i) => {
+          const eleve = tr.querySelector("td").textContent;
+          const tenue = Array.from(tr.querySelectorAll("select")).map(s => s.value);
+          const attitude = Array.from(
+            tbodyAtt.querySelectorAll("tr")[i].querySelectorAll("select")
+          ).map(s => s.value);
+
+          await fetch(API_URL, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({eleve, tenue, attitude})
+          });
+        });
+      }
+
+      // Charger les données au démarrage
+      loadData();
+
+      // ✅ Reset complet
+      window.resetAll = function() {
+        tbodyTenue.querySelectorAll("select").forEach(sel => sel.value = "oui");
+        tbodyAtt.querySelectorAll("select").forEach(sel => sel.value = "neutre");
+        tbodyTenue.querySelectorAll("tr").forEach(tr => calculerTenue(tr));
+        tbodyAtt.querySelectorAll("tr").forEach(tr => calculerAttitude(tr));
+        calculerRecap();
+        saveData();
+      }
+    });
+  </script>
+</body>
+</html>
