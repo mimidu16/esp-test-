@@ -90,7 +90,6 @@
   </div>
 
   <h2>Suivi Tenue</h2>
-
   <table id="table-tenue">
     <thead>
       <tr id="header-tenue">
@@ -102,7 +101,6 @@
   </table>
 
   <h2>Suivi Attitude</h2>
-
   <table id="table-attitude">
     <thead>
       <tr id="header-attitude">
@@ -114,7 +112,6 @@
   </table>
 
   <h2>Récapitulatif Général</h2>
-
   <table id="table-recap">
     <thead>
       <tr>
@@ -133,7 +130,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       const nbSeances = 12;
       const eleves = ["Isabelle", "Luis", "Miguel", "Amélia", "Dïamond", "Lorèna"];
-      const API_URL = "https://script.google.com/macros/s/AKfycbXXXX/exec"; // ⚠️ Mets ici ton URL de déploiement
+      const API_URL = "https://script.google.com/macros/s/AKfycbzr-NSUShZyZVgM-QNOxuhBI8JptxtyAEzCsKQzIcjMUpgfHvsDOaW1tALvjKYGHCl68Q/exec"; 
 
       // --- TABLEAU TENUE ---
       const headerTenue = document.getElementById("header-tenue");
@@ -342,13 +339,13 @@
             // Tenue
             tbodyTenue.querySelectorAll("tr")[i].querySelectorAll("select")
               .forEach((s, j) => {
-                s.value = (row["Tenue " + (j+1)] || "oui").toLowerCase();
+                s.value = (row["Tenue"][j] || "oui").toLowerCase();
               });
 
             // Attitude
             tbodyAtt.querySelectorAll("tr")[i].querySelectorAll("select")
               .forEach((s, j) => {
-                s.value = (row["Attitude " + (j+1)] || "neutre").toLowerCase();
+                s.value = (row["Attitude"][j] || "neutre").toLowerCase();
               });
           });
 
