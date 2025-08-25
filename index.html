@@ -123,7 +123,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       const nbSeances = 12;
       const eleves = ["Isabelle", "Luis", "Miguel", "Amélia", "Dïamond", "Lorèna"];
-      const API_URL = "https://script.google.com/macros/s/AKfycbylCtXuDmPcaygIgBf8Z6BviTWasxiMAkFh7N4s0Ml_em9X-NGW_rrR7ggaF-YLe54nxQ/exec"; // Remplace cette URL avec celle de ton déploiement
+      const API_URL = "L'URL_de_ta_Web_App"; // Remplace par l'URL de ta Web App
 
       const tbodyTenue = document.querySelector("#table-tenue tbody");
       const tbodyAtt = document.querySelector("#table-attitude tbody");
@@ -222,7 +222,10 @@
           const tenue = Array.from(document.querySelectorAll(`#table-tenue tr:nth-child(${index + 1}) select`)).map(sel => sel.value);
           const attitude = Array.from(document.querySelectorAll(`#table-attitude tr:nth-child(${index + 1}) select`)).map(sel => sel.value);
 
-          // Envoi des données via POST
+          console.log("Données envoyées pour l'élève:", eleve);
+          console.log("Tenue:", tenue);
+          console.log("Attitude:", attitude);
+
           fetch(API_URL, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -234,12 +237,10 @@
         });
       }
 
-      // Envoie les données chaque fois qu'un utilisateur modifie une valeur
       document.querySelectorAll("select").forEach(sel => {
         sel.addEventListener("change", saveData);
       });
 
-      // Initialiser les calculs
       tbodyTenue.querySelectorAll("tr").forEach(tr => calculerTenue(tr));
       tbodyAtt.querySelectorAll("tr").forEach(tr => calculerAttitude(tr));
       calculerRecap();
